@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/BOOMfinity/golog"
+	"github.com/MrBoombastic/S2fS/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/google/uuid"
@@ -10,23 +11,6 @@ import (
 	"os"
 	"strings"
 )
-
-type UploadRequest struct {
-	File      string `json:"file"`
-	Extension string `json:"extension"`
-}
-type UploadResponse struct {
-	Error    string `json:"error"`
-	Filename string `json:"filename"`
-}
-
-type DeleteRequest struct {
-	Filename string `json:"filename"`
-}
-
-type DeleteResponse struct {
-	Error string `json:"error"`
-}
 
 var log = golog.New("S2fS")
 
@@ -52,39 +36,39 @@ func main() {
 }
 
 func upload(c *fiber.Ctx) error {
-	var request UploadRequest
+	var request types.UploadRequest
 	if err := c.BodyParser(&request); err != nil {
 		log.Error().SendError(err)
-		return c.Status(fiber.StatusBadRequest).JSON(UploadResponse{Error: err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(types.UploadResponse{Error: err.Error()})
 	}
 	if request.Extension == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(UploadResponse{Error: "extension is empty"})
+		return c.Status(fiber.StatusBadRequest).JSON(types.UploadResponse{Error: "extension is empty"})
 	}
 	if request.File == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(UploadResponse{Error: "file is empty"})
+		return c.Status(fiber.StatusBadRequest).JSON(types.UploadResponse{Error: "file is empty"})
 	}
 	// generate random uuid v4
 	id, err := uuid.NewRandom()
 	if err != nil {
 		log.Error().SendError(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(UploadResponse{Error: err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(types.UploadResponse{Error: err.Error()})
 	}
 	// save file from request
-	filename := fmt.Sprintf("./s2fs_data/%v.%v", id, request.Extension)
-	if err := os.WriteFile(filename, []byte(request.File), 0644); err != nil {
+	filename := fmt.Sprintf("%v.%v", id, request.Extension)
+	if err := os.WriteFile("./s2fs_data/"+filename, []byte(request.File), 0644); err != nil {
 		log.Error().SendError(err)
 		return err
 	}
-	return c.JSON(UploadResponse{
+	return c.JSON(types.UploadResponse{
 		Filename: filename,
 	})
 }
 
 func del(c *fiber.Ctx) error {
-	var request DeleteRequest
+	var request types.DeleteRequest
 	if err := c.BodyParser(&request); err != nil {
 		log.Error().SendError(err)
-		return c.Status(fiber.StatusBadRequest).JSON(DeleteResponse{Error: err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(types.DeleteResponse{Error: err.Error()})
 	}
 	request.Filename = strings.ReplaceAll(request.Filename, "../", "")
 	request.Filename = strings.ReplaceAll(request.Filename, "./", "")
@@ -94,5 +78,5 @@ func del(c *fiber.Ctx) error {
 		log.Error().SendError(err)
 		return err
 	}
-	return c.JSON(DeleteResponse{Error: ""})
+	return c.JSON(types.DeleteResponse{Error: ""})
 }
