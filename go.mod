@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/BOOMfinity/golog v1.0.6
-	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/uuid v1.6.0
 )
 
